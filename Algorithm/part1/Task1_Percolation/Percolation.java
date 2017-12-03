@@ -6,6 +6,7 @@ public class Percolation {
     private int openSites = 0;
     private final int bottomRootIndex;
     private final WeightedQuickUnionUF quickUnion;
+    private final WeightedQuickUnionUF isFullQuickUnion; // additional quick union object to resolve false isFull hits
 
     public Percolation(int n) {
         if (n <= 0) throw new java.lang.IllegalArgumentException("n should be > 0");
@@ -13,6 +14,7 @@ public class Percolation {
 
         bottomRootIndex = n * n + 1;
         quickUnion = new WeightedQuickUnionUF(n*n+2); // n^2 + 2 additional sites for roots
+        isFullQuickUnion = new WeightedQuickUnionUF(n*n+1);
     }
 
     public void open(int row, int col) {
@@ -26,22 +28,27 @@ public class Percolation {
 
             if (row == 1) { // first row - connect to root site
                 quickUnion.union(0, unionFindIndex);
+                isFullQuickUnion.union(0, unionFindIndex);
             } else if (isOpen(row - 1, col)) {
                 quickUnion.union(unionFindIndex, getUnionFindIndex(row - 1, col));
+                isFullQuickUnion.union(unionFindIndex, getUnionFindIndex(row - 1, col));
             }
 
             if (row == sites.length) { // last row - connect to bottom root site
                 quickUnion.union(unionFindIndex, bottomRootIndex);
             } else if (isOpen(row+1, col)) {
                 quickUnion.union(unionFindIndex, getUnionFindIndex(row + 1, col));
+                isFullQuickUnion.union(unionFindIndex, getUnionFindIndex(row + 1, col));
             }
 
             if (col > 1 && isOpen(row, col - 1)) {
                 quickUnion.union(unionFindIndex, getUnionFindIndex(row, col-1));
+                isFullQuickUnion.union(unionFindIndex, getUnionFindIndex(row, col-1));
             }
 
             if (col < sites.length && isOpen(row, col+1)) {
                 quickUnion.union(unionFindIndex, getUnionFindIndex(row, col + 1));
+                isFullQuickUnion.union(unionFindIndex, getUnionFindIndex(row, col + 1));
             }
         }
     }
@@ -69,7 +76,7 @@ public class Percolation {
 
         int ufCellIndex = getUnionFindIndex(row, col);
 
-        return quickUnion.connected(0, ufCellIndex);
+        return isFullQuickUnion.connected(0, ufCellIndex);
     }
 
     public int numberOfOpenSites() {
