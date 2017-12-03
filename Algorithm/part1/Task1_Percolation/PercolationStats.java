@@ -4,14 +4,14 @@ import edu.princeton.cs.algs4.StdStats;
 public class PercolationStats {
     private static final double CONFIDENCE_96 = 1.96;
 
-    private final int n;
-    private final double[] percolationThresholds;
+    private final double meanVal;
+    private final double stddevVal;
+    private final double confidenceLoVal;
+    private final double confidenceHiVal;
 
     public PercolationStats(int n, int trials) {
         if (n <= 0) throw new java.lang.IllegalArgumentException("n should be >0");
         if (trials <= 0) throw new java.lang.IllegalArgumentException("trials should be >0");
-
-        this.n = n;
 
         int[] cells = new int[n*n];
 
@@ -19,7 +19,7 @@ public class PercolationStats {
             cells[i] = i;
         }
 
-        percolationThresholds = new double[trials];
+        double[] percolationThresholds = new double[trials];
 
         for (int i = 0; i < trials; i++) {
             StdRandom.shuffle(cells); // create random list of cells
@@ -27,7 +27,7 @@ public class PercolationStats {
 
             int iteration = 0;
             while (!percolation.percolates()) {
-                int[] siteToOpen = getRowAndColByIndex(cells[iteration]);
+                int[] siteToOpen = getRowAndColByIndex(cells[iteration], n);
 
                 percolation.open(siteToOpen[0], siteToOpen[1]);
                 iteration++;
@@ -35,9 +35,14 @@ public class PercolationStats {
 
             percolationThresholds[i] = percolation.numberOfOpenSites() / (double) (n * n);
         }
+
+        meanVal = StdStats.mean(percolationThresholds);
+        stddevVal = StdStats.stddev(percolationThresholds);
+        confidenceLoVal = meanVal - ((1.96d * stddevVal) / Math.sqrt(trials));
+        confidenceHiVal = meanVal + ((1.96d * stddevVal) / Math.sqrt(trials));
     }
 
-    private int[] getRowAndColByIndex(int index) {
+    private int[] getRowAndColByIndex(int index, int n) {
         int[] result = new int[2];
         result[0] = (int) Math.floor(index / n) + 1;
         result[1] = index % n + 1;
@@ -46,18 +51,14 @@ public class PercolationStats {
     }
 
     public double mean() {
-        return StdStats.mean(percolationThresholds);
+        return meanVal;
     }
 
     public double stddev() {
-        return StdStats.stddev(percolationThresholds);
+        return stddevVal;
     }
-    public double confidenceLo() {
-        return mean() - (CONFIDENCE_96 * stddev() / Math.sqrt(n));
-    }
-    public double confidenceHi() {
-        return mean() + (CONFIDENCE_96 * stddev() / Math.sqrt(n));
-    }
+    public double confidenceLo() { return confidenceLoVal; }
+    public double confidenceHi() { return confidenceHiVal; }
 
     public static void main(String[] args) {
         int n = Integer.parseInt(args[0]);
