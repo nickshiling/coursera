@@ -38,8 +38,8 @@ public class PercolationStats {
 
         meanVal = StdStats.mean(percolationThresholds);
         stddevVal = StdStats.stddev(percolationThresholds);
-        confidenceLoVal = meanVal - ((1.96d * stddevVal) / Math.sqrt(trials));
-        confidenceHiVal = meanVal + ((1.96d * stddevVal) / Math.sqrt(trials));
+        confidenceLoVal = meanVal - ((CONFIDENCE_96 * stddevVal) / Math.sqrt(trials));
+        confidenceHiVal = meanVal + ((CONFIDENCE_96 * stddevVal) / Math.sqrt(trials));
     }
 
     private int[] getRowAndColByIndex(int index, int n) {
